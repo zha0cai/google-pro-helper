@@ -26,7 +26,7 @@ class ScreenshotSecurityTests(unittest.TestCase):
 
     def test_existing_png_is_served(self):
         file_path = Path(self.temp_dir.name) / "Account_1_step5_123.png"
-        file_path.write_bytes(b"\\x89PNG\\r\\n\\x1a\\n")
+        file_path.write_bytes(bytes([137, 80, 78, 71, 13, 10, 26, 10]))
         response = self.get(file_path.name)
         self.assertIsInstance(response, FileResponse)
         self.assertEqual(response.media_type, "image/png")
@@ -41,7 +41,7 @@ class ScreenshotSecurityTests(unittest.TestCase):
         unsafe = [
             "../secret.png", r"..\\secret.png", r"\\\\remote.invalid\\share.png",
             "photo.png:stream", "/etc/passwd.png", "photo.txt",
-            ".hidden.png", "hello\\x00.png", "hello\\n.png",
+            ".hidden.png", "hello" + chr(0) + ".png", "hello" + chr(10) + ".png",
         ]
         for filename in unsafe:
             with self.subTest(filename=repr(filename)):
