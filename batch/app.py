@@ -47,7 +47,7 @@ async def get_screenshot(filename: str):
         raise HTTPException(status_code=404, detail="Screenshot not found")
 
     screenshot_path = os.path.join(SCREENSHOTS_DIR, filename)
-    if not os.path.isfile(screenshot_path) or os.path.islink(screenshot_path):
+    if os.path.islink(screenshot_path) or not os.path.isfile(screenshot_path):
         raise HTTPException(status_code=404, detail="Screenshot not found")
     return FileResponse(screenshot_path, media_type="image/png")
 
