@@ -9,7 +9,6 @@ import time
 from typing import Dict, Any, List, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from automation_engine import (
@@ -30,7 +29,27 @@ os.makedirs(TEMPLATES_DIR, exist_ok=True)
 os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
 
 app = FastAPI(title="Google AI Pro (5 TB) 零成本两年全自动控制台")
-app.mount("/screenshots", StaticFiles(directory=SCREENSHOTS_DIR), name="screenshots")
+@app.get("/screenshots/{filename}")
+async def get_screenshot(filename: str):
+    """Serve only screenshot PNG files from the local screenshot directory.
+
+    Do not pass untrusted URL paths to Starlette StaticFiles on Windows.
+    In addition to the patched Starlette requirement, this allowlist blocks
+    traversal, UNC paths, Windows alternate data streams and symlink files.
+    """
+    if (
+        not filename
+        or not filename.lower().endswith(".png")
+        or filename.startswith(".")
+        or any(char in filename for char in ("/", "\\", ":"))
+        or any(ord(char) < 32 for char in filename)
+    ):
+        raise HTTPException(status_code=404, detail="Screenshot not found")
+
+    screenshot_path = os.path.join(SCREENSHOTS_DIR, filename)
+    if not os.path.isfile(screenshot_path) or os.path.islink(screenshot_path):
+        raise HTTPException(status_code=404, detail="Screenshot not found")
+    return FileResponse(screenshot_path, media_type="image/png")
 
 # Global runtime state
 LOGS: List[str] = [
