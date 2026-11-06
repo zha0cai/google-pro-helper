@@ -1,0 +1,36 @@
+name: CVE-2026-48818 screenshot regression
+
+on:
+  push:
+    branches:
+      - fix/cve-2026-48818-starlette
+  pull_request:
+    paths:
+      - "batch/app.py"
+      - "batch/requirements.txt"
+      - "batch/tests/test_screenshot_security.py"
+      - ".github/workflows/security-screenshot.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python-version: ["3.10", "3.11"]
+    defaults:
+      run:
+        working-directory: batch
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install patched dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Validate dependency graph
+        run: python -m pip check
+      - name: Run screenshot security regression
+        run: python -m unittest discover -s tests -p "test_screenshot_security.py" -v
