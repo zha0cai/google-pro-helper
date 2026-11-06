@@ -1,4 +1,8 @@
-fastapi>=0.100.0
+# CVE-2026-48818 is fixed in Starlette 1.1.0; >=1.3.1 also fixes CVE-2026-54283.
+# FastAPI >=0.143.3 supports Starlette 1.x and Python >=3.10.
+fastapi>=0.143.3,<1.0
+starlette>=1.3.1,<1.8.0; python_version < "3.11"
+starlette>=1.3.1,<2.0; python_version >= "3.11"
 uvicorn>=0.22.0
 playwright>=1.40.0
-pydantic>=2.0.0
+pydantic>=2.9.0,<3.0
